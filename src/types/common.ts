@@ -36,6 +36,8 @@ export interface Quote extends BaseEntity {
   components: { [key: string]: number };
   upfrontFee: number;
   monthlyRate: number;
+  installationFee: number;
+  deliveryFee: number;
   status: string;
 }
 

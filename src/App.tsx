@@ -10,6 +10,7 @@ import Quotes from './components/Quotes';
 import Payments from './components/Payments';
 import Agreements from './components/Agreements';
 import Rentals from './components/Rentals';
+import PriceVariables from './components/PriceVariables';
 
 // Define the possible active components
 type ActiveComponent = 'rentalRequests' | 'customers' | 'quotes' | 'payments' | 'agreements' | 'rentals';
@@ -17,6 +18,7 @@ type ActiveComponent = 'rentalRequests' | 'customers' | 'quotes' | 'payments' | 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [activeComponent, setActiveComponent] = useState<ActiveComponent>('rentalRequests');
+  const [showPriceVariables, setShowPriceVariables] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -68,6 +70,7 @@ const App: React.FC = () => {
           <div>
             <p>Welcome, {user.displayName || user.email}</p>
             <button onClick={handleSignOut}>Sign Out</button>
+            <button onClick={() => setShowPriceVariables(true)}>Settings</button>
           </div>
         ) : (
           <button onClick={handleSignIn}>Sign In with Google</button>
@@ -86,6 +89,7 @@ const App: React.FC = () => {
       <main>
         {user ? renderComponent() : <p>Please sign in to access the application.</p>}
       </main>
+      {showPriceVariables && <PriceVariables onClose={() => setShowPriceVariables(false)} />}
     </div>
   );
 };

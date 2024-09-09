@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Customer, Quote } from '../types/common';
 import { CrudService } from '../services/crudService';
+import RampPricingCalculator from './RampPricingCalculator';
 
 interface QuoteFormProps {
   customer: Customer;
@@ -11,15 +12,25 @@ interface QuoteFormProps {
 const quoteService = new CrudService<Quote>('quotes');
 const customerService = new CrudService<Customer>('customers');
 
-const rampComponents = ['RS4', 'RS5', 'RS6', 'RS7', 'RS8', 'L54', 'L55', 'L58'];
-
 const QuoteForm: React.FC<QuoteFormProps> = ({ customer, onClose, onQuoteCreated }) => {
   const [components, setComponents] = useState<{ [key: string]: number }>({});
   const [upfrontFee, setUpfrontFee] = useState<number>(0);
   const [monthlyRate, setMonthlyRate] = useState<number>(0);
+  const [installationFee, setInstallationFee] = useState<number>(0);
+  const [deliveryFee, setDeliveryFee] = useState<number>(0);
 
-  const handleComponentChange = (component: string, quantity: number) => {
-    setComponents(prev => ({ ...prev, [component]: quantity }));
+  const handlePriceCalculated = (
+    calculatedUpfrontFee: number,
+    calculatedMonthlyRate: number,
+    calculatedComponents: { [key: string]: number },
+    calculatedInstallationFee: number,
+    calculatedDeliveryFee: number
+  ) => {
+    setUpfrontFee(calculatedUpfrontFee);
+    setMonthlyRate(calculatedMonthlyRate);
+    setComponents(calculatedComponents);
+    setInstallationFee(calculatedInstallationFee);
+    setDeliveryFee(calculatedDeliveryFee);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,6 +42,8 @@ const QuoteForm: React.FC<QuoteFormProps> = ({ customer, onClose, onQuoteCreated
         components,
         upfrontFee,
         monthlyRate,
+        installationFee,
+        deliveryFee,
         status: 'pending',
       };
 
@@ -51,42 +64,18 @@ const QuoteForm: React.FC<QuoteFormProps> = ({ customer, onClose, onQuoteCreated
       <div className="quote-form">
         <h2>Create Quote for {customer.firstName} {customer.lastName}</h2>
         <form onSubmit={handleSubmit}>
-          <h3>Ramp Components</h3>
-          {rampComponents.map(component => (
-            <div key={component}>
-              <label>
-                {component}:
-                <input
-                  type="number"
-                  min="0"
-                  value={components[component] || 0}
-                  onChange={(e) => handleComponentChange(component, parseInt(e.target.value))}
-                />
-              </label>
-            </div>
-          ))}
-          <h3>Pricing</h3>
+          <RampPricingCalculator onPriceCalculated={handlePriceCalculated} />
           <div>
-            <label>
-              Upfront Fee (Delivery + Install):
-              <input
-                type="number"
-                min="0"
-                value={upfrontFee}
-                onChange={(e) => setUpfrontFee(parseFloat(e.target.value))}
-              />
-            </label>
+            <strong>Upfront Fee: ${upfrontFee}</strong>
           </div>
           <div>
-            <label>
-              Monthly Rate:
-              <input
-                type="number"
-                min="0"
-                value={monthlyRate}
-                onChange={(e) => setMonthlyRate(parseFloat(e.target.value))}
-              />
-            </label>
+            <strong>Monthly Rate: ${monthlyRate}</strong>
+          </div>
+          <div>
+            <strong>Installation Fee: ${installationFee}</strong>
+          </div>
+          <div>
+            <strong>Delivery Fee: ${deliveryFee}</strong>
           </div>
           <button type="submit">Create Quote</button>
           <button type="button" onClick={onClose}>Cancel</button>
