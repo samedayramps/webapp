@@ -117,6 +117,7 @@ const Quotes: React.FC = () => {
     { label: 'Request ID', render: (quote) => quote.rentalRequestId },
     { label: 'Upfront Fee', render: (quote) => `$${quote.upfrontFee}` },
     { label: 'Monthly Rate', render: (quote) => `$${quote.monthlyRate}` },
+    { label: 'Total Length', render: (quote) => `${quote.totalLength} ft` },
     { label: 'Status', render: (quote) => quote.status },
   ];
 

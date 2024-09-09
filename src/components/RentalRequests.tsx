@@ -50,10 +50,16 @@ const RentalRequests: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const requestData = {
+        ...formData,
+        estimatedLength: knowLength ? Number(formData.estimatedLength) : null,
+        estimatedDuration: knowDuration ? Number(formData.estimatedDuration) : null,
+      };
+      
       if (isEditing && formData.id) {
-        await rentalRequestService.update(formData.id, formData);
+        await rentalRequestService.update(formData.id, requestData);
       } else {
-        await rentalRequestService.create(formData as Omit<RentalRequest, 'id' | 'createdAt' | 'updatedAt'>);
+        await rentalRequestService.create(requestData as Omit<RentalRequest, 'id' | 'createdAt' | 'updatedAt'>);
       }
       fetchRentalRequests();
       resetForm();
@@ -126,7 +132,7 @@ const RentalRequests: React.FC = () => {
     { label: 'Address', render: (request) => request.address },
     { label: 'Mobility Aids', render: (request) => request.mobilityAids.join(', ') },
     { label: 'Estimated Length', render: (request) => request.estimatedLength ? `${request.estimatedLength} ft` : 'None' },
-    { label: 'Estimated Duration', render: (request) => request.estimatedDuration ? `${request.estimatedDuration} days` : 'None' },
+    { label: 'Estimated Duration', render: (request) => request.estimatedDuration ? `${request.estimatedDuration} months` : 'None' },
     { label: 'Status', render: (request) => request.status },
   ];
 
@@ -223,7 +229,7 @@ const RentalRequests: React.FC = () => {
               name="estimatedDuration"
               value={formData.estimatedDuration || ''}
               onChange={handleInputChange}
-              placeholder="Estimated Duration (days)"
+              placeholder="Estimated Duration (months)"
             />
           )}
         </div>

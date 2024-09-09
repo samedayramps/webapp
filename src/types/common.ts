@@ -38,6 +38,7 @@ export interface Quote extends BaseEntity {
   monthlyRate: number;
   installationFee: number;
   deliveryFee: number;
+  totalLength: number;
   status: string;
 }
 

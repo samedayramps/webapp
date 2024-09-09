@@ -6,21 +6,30 @@ interface RampComponent {
   id: string;
   name: string;
   price: number;
+  length: number;
+  isLanding: boolean;
 }
 
 interface RampPricingCalculatorProps {
-  onPriceCalculated: (upfrontFee: number, monthlyRate: number, components: { [key: string]: number }, installationFee: number, deliveryFee: number) => void;
+  onPriceCalculated: (
+    upfrontFee: number,
+    monthlyRate: number,
+    components: { [key: string]: number },
+    installationFee: number,
+    deliveryFee: number,
+    totalLength: number
+  ) => void;
 }
 
 const rampComponents: RampComponent[] = [
-  { id: 'RS4', name: 'RS4 Ramp Section', price: 100 },
-  { id: 'RS5', name: 'RS5 Ramp Section', price: 120 },
-  { id: 'RS6', name: 'RS6 Ramp Section', price: 140 },
-  { id: 'RS7', name: 'RS7 Ramp Section', price: 160 },
-  { id: 'RS8', name: 'RS8 Ramp Section', price: 180 },
-  { id: 'L54', name: 'L54 Landing', price: 200 },
-  { id: 'L55', name: 'L55 Landing', price: 220 },
-  { id: 'L58', name: 'L58 Landing', price: 240 },
+  { id: 'R4', name: '4ft Ramp', price: 100, length: 4, isLanding: false },
+  { id: 'R5', name: '5ft Ramp', price: 120, length: 5, isLanding: false },
+  { id: 'R6', name: '6ft Ramp', price: 140, length: 6, isLanding: false },
+  { id: 'R7', name: '7ft Ramp', price: 160, length: 7, isLanding: false },
+  { id: 'R8', name: '8ft Ramp', price: 180, length: 8, isLanding: false },
+  { id: 'L54', name: '5x4 Landing', price: 200, length: 0, isLanding: true },
+  { id: 'L55', name: '5x5 Landing', price: 220, length: 0, isLanding: true },
+  { id: 'L58', name: '5x8 Landing', price: 240, length: 0, isLanding: true },
 ];
 
 const RampPricingCalculator: React.FC<RampPricingCalculatorProps> = ({ onPriceCalculated }) => {
@@ -57,7 +66,12 @@ const RampPricingCalculator: React.FC<RampPricingCalculatorProps> = ({ onPriceCa
       return obj;
     }, {} as { [key: string]: number });
 
-    onPriceCalculated(upfrontFee, monthlyRate, componentsObject, installationFee, deliveryFee);
+    const totalLength = selectedComponents.reduce((total, { component, quantity }) => {
+      // Only add length for non-landing components
+      return total + (component.isLanding ? 0 : component.length * quantity);
+    }, 0);
+
+    onPriceCalculated(upfrontFee, monthlyRate, componentsObject, installationFee, deliveryFee, totalLength);
   }, [selectedComponents, installationFee, deliveryFee, rentalDuration, onPriceCalculated]);
 
   useEffect(() => {
@@ -88,16 +102,16 @@ const RampPricingCalculator: React.FC<RampPricingCalculatorProps> = ({ onPriceCa
       <h3>Ramp Components</h3>
       <select onChange={handleAddComponent} defaultValue="">
         <option value="" disabled>Select a component</option>
-        {Object.entries(componentPrices).map(([id, price]) => (
-          <option key={id} value={id}>
-            {id} (${price})
+        {rampComponents.map((component) => (
+          <option key={component.id} value={component.id}>
+            {component.name} (${componentPrices[component.id] || component.price})
           </option>
         ))}
       </select>
       <ul>
         {selectedComponents.map(({ component, quantity }, index) => (
           <li key={index}>
-            {component.name} - ${component.price}
+            {component.name} - ${componentPrices[component.id] || component.price}
             <input
               type="number"
               min="1"

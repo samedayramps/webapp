@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Customer, Quote } from '../types/common';
 import { CrudService } from '../services/crudService';
 import RampPricingCalculator from './RampPricingCalculator';
+import CustomerInfo from './CustomerInfo';
 
 interface QuoteFormProps {
   customer: Customer;
@@ -18,19 +19,22 @@ const QuoteForm: React.FC<QuoteFormProps> = ({ customer, onClose, onQuoteCreated
   const [monthlyRate, setMonthlyRate] = useState<number>(0);
   const [installationFee, setInstallationFee] = useState<number>(0);
   const [deliveryFee, setDeliveryFee] = useState<number>(0);
+  const [totalLength, setTotalLength] = useState<number>(0);
 
   const handlePriceCalculated = (
     calculatedUpfrontFee: number,
     calculatedMonthlyRate: number,
     calculatedComponents: { [key: string]: number },
     calculatedInstallationFee: number,
-    calculatedDeliveryFee: number
+    calculatedDeliveryFee: number,
+    calculatedTotalLength: number
   ) => {
     setUpfrontFee(calculatedUpfrontFee);
     setMonthlyRate(calculatedMonthlyRate);
     setComponents(calculatedComponents);
     setInstallationFee(calculatedInstallationFee);
     setDeliveryFee(calculatedDeliveryFee);
+    setTotalLength(calculatedTotalLength);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +48,7 @@ const QuoteForm: React.FC<QuoteFormProps> = ({ customer, onClose, onQuoteCreated
         monthlyRate,
         installationFee,
         deliveryFee,
+        totalLength,
         status: 'pending',
       };
 
@@ -63,6 +68,7 @@ const QuoteForm: React.FC<QuoteFormProps> = ({ customer, onClose, onQuoteCreated
     <div className="quote-form-overlay">
       <div className="quote-form">
         <h2>Create Quote for {customer.firstName} {customer.lastName}</h2>
+        <CustomerInfo customer={customer} />
         <form onSubmit={handleSubmit}>
           <RampPricingCalculator onPriceCalculated={handlePriceCalculated} />
           <div>
@@ -76,6 +82,9 @@ const QuoteForm: React.FC<QuoteFormProps> = ({ customer, onClose, onQuoteCreated
           </div>
           <div>
             <strong>Delivery Fee: ${deliveryFee}</strong>
+          </div>
+          <div>
+            <strong>Total Ramp Length: {totalLength} ft</strong>
           </div>
           <button type="submit">Create Quote</button>
           <button type="button" onClick={onClose}>Cancel</button>
