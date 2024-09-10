@@ -1,41 +1,71 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Customer, Quote } from '../types/common';
 import QuoteForm from './QuoteForm';
+import RampPricingCalculator from './RampPricingCalculator';
 import { Timestamp } from 'firebase/firestore';
 
 interface QuoteFormModalProps {
+  quote?: Partial<Quote>;
   customer: Customer;
   onClose: () => void;
-  onQuoteCreated: () => void;
+  onQuoteCreated: (quote: Partial<Quote>) => Promise<void>;
 }
 
 const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
+  quote,
   customer,
   onClose,
   onQuoteCreated,
 }) => {
-  const quote: Quote = {
-    customerId: customer.id,
-    rentalRequestId: 'DIRECT_FROM_CUSTOMER',
-    // Remove customerName and customerAddress if they're not in the Quote type
-    components: {},
-    monthlyRate: 0,
-    installationFee: 0,
-    deliveryFee: 0,
-    totalLength: 0,
-    status: 'pending',
-    id: '',
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
+  const [rampConfig, setRampConfig] = useState({
+    monthlyRate: quote?.monthlyRate || 0,
+    components: quote?.components || {},
+    installationFee: quote?.installationFee || 0,
+    deliveryFee: quote?.deliveryFee || 0,
+    totalLength: quote?.totalLength || 0,
+  });
+
+  const handlePriceCalculated = useCallback((
+    monthlyRate: number,
+    components: { [key: string]: number },
+    installationFee: number,
+    deliveryFee: number,
+    totalLength: number
+  ) => {
+    setRampConfig({ monthlyRate, components, installationFee, deliveryFee, totalLength });
+  }, []);
+
+  const handleSubmit = async (formData: Partial<Quote>) => {
+    const updatedQuote: Partial<Quote> = {
+      ...formData,
+      ...rampConfig,
+      customerId: customer.id,
+      rentalRequestId: quote?.rentalRequestId || 'DIRECT_FROM_CUSTOMER',
+      createdAt: quote?.createdAt || Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    await onQuoteCreated(updatedQuote);
+    onClose();
   };
 
   return (
-    <QuoteForm
-      quote={quote}
-      customer={customer}  // Pass the customer object separately
-      onClose={onClose}
-      onQuoteCreated={onQuoteCreated}
-    />
+    <div className="modal">
+      <div className="modal-content">
+        <h2>{quote ? 'Edit Quote' : 'Create New Quote'}</h2>
+        <RampPricingCalculator
+          onPriceCalculated={handlePriceCalculated}
+          customerAddress={customer.address}
+          initialComponents={quote?.components}
+        />
+        <QuoteForm
+          quote={quote || {}}
+          customer={customer}
+          onClose={onClose}
+          onSubmit={handleSubmit}
+          rampConfig={rampConfig}
+        />
+      </div>
+    </div>
   );
 };
 

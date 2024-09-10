@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import RentalRequestList from './RentalRequestList';
 import { useRentalRequests } from '../hooks/useRentalRequests';
 import RentalRequestFormModal from './RentalRequestFormModal';
+import ViewDetailsModal from './shared/ViewDetailsModal';
 import { RentalRequest } from '../types/common'; // Add this import
 
 const RentalRequests: React.FC = () => {
@@ -15,6 +16,7 @@ const RentalRequests: React.FC = () => {
 
   const [selectedRequest, setSelectedRequest] = useState<RentalRequest | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showViewDetails, setShowViewDetails] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   const handleEdit = (request: RentalRequest) => {
@@ -32,6 +34,11 @@ const RentalRequests: React.FC = () => {
   const handleRequestAdded = () => {
     setShowAddForm(false);
     fetchRentalRequests();
+  };
+
+  const handleView = (request: RentalRequest) => {
+    setSelectedRequest(request);
+    setShowViewDetails(true);
   };
 
   return (
@@ -55,7 +62,14 @@ const RentalRequests: React.FC = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onCreateCustomer={handleCreateCustomer}
+        onView={handleView}
       />
+      {showViewDetails && selectedRequest && (
+        <ViewDetailsModal
+          entity={selectedRequest}
+          onClose={() => setShowViewDetails(false)}
+        />
+      )}
     </div>
   );
 };

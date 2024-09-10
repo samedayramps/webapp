@@ -1,17 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Customer } from '../types/common';
+import { Customer, Quote } from '../types/common';
 import { CrudService } from '../services/crudService';
 import { writeBatch, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const customerService = new CrudService<Customer>('customers');
+const quoteService = new CrudService<Quote>('quotes');
 
 export const useCustomers = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<(Customer & { quote?: Quote })[]>([]);
 
   const fetchCustomers = useCallback(async () => {
     const fetchedCustomers = await customerService.getAll();
-    setCustomers(fetchedCustomers);
+    const quotes = await quoteService.getAll();
+    
+    const customersWithQuotes = fetchedCustomers.map(customer => {
+      const customerQuote = quotes.find(quote => quote.customerId === customer.id);
+      return { ...customer, quote: customerQuote };
+    });
+
+    setCustomers(customersWithQuotes);
   }, []);
 
   useEffect(() => {
@@ -31,6 +39,11 @@ export const useCustomers = () => {
         if (customerToDelete.rentalRequestId) {
           const requestRef = doc(db, 'rentalRequests', customerToDelete.rentalRequestId);
           batch.update(requestRef, { customerId: null });
+        }
+
+        if (customerToDelete.quote) {
+          const quoteRef = doc(db, 'quotes', customerToDelete.quote.id);
+          batch.delete(quoteRef);
         }
 
         await batch.commit();

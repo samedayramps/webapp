@@ -1,49 +1,21 @@
-// src/components/Quotes.tsx
-import React, { useState, useEffect } from 'react';
-import { Quote, Customer } from '../types/common';
-import { CrudService } from '../services/crudService';
-import DataTable, { Column } from './shared/DataTable';
-import QuoteForm from './QuoteForm';
-
-interface QuoteWithCustomer extends Quote {
-  customer: Customer;
-}
-
-const quoteService = new CrudService<Quote>('quotes');
-const customerService = new CrudService<Customer>('customers');
+import React, { useState } from 'react';
+import { useQuotes, QuoteWithCustomer } from '../hooks/useQuotes';
+import QuoteList from './QuoteList';
+import QuoteFormModal from './QuoteFormModal';
+import CustomerSelectionModal from './CustomerSelectionModal';
+import ViewDetailsModal from './shared/ViewDetailsModal';
+import { Customer } from '../types/common';
 
 const Quotes: React.FC = () => {
-  const [quotes, setQuotes] = useState<QuoteWithCustomer[]>([]);
+  const { quotes, handleAddOrUpdateQuote, handleDelete } = useQuotes();
   const [selectedQuote, setSelectedQuote] = useState<QuoteWithCustomer | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
-
-  useEffect(() => {
-    fetchQuotes();
-  }, []);
-
-  const fetchQuotes = async () => {
-    const fetchedQuotes = await quoteService.getAll();
-    const quotesWithCustomers = await Promise.all(
-      fetchedQuotes.map(async (quote) => {
-        const customer = await customerService.getById(quote.customerId);
-        return { ...quote, customer } as QuoteWithCustomer;
-      })
-    );
-    setQuotes(quotesWithCustomers);
-  };
+  const [showCustomerSelection, setShowCustomerSelection] = useState(false);
+  const [showViewDetails, setShowViewDetails] = useState(false);
 
   const handleEdit = (quote: QuoteWithCustomer) => {
     setSelectedQuote(quote);
     setShowEditForm(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await quoteService.delete(id);
-      fetchQuotes();
-    } catch (error) {
-      console.error('Error deleting quote: ', error);
-    }
   };
 
   const handleCloseEditForm = () => {
@@ -51,31 +23,49 @@ const Quotes: React.FC = () => {
     setSelectedQuote(null);
   };
 
-  const columns: Column<QuoteWithCustomer>[] = [
-    { label: 'Customer', render: (quote) => `${quote.customer.firstName} ${quote.customer.lastName}` },
-    { label: 'Address', render: (quote) => quote.customer.address },
-    { label: 'Monthly Rate', render: (quote) => `$${quote.monthlyRate.toFixed(2)}` },
-    { label: 'Installation Fee', render: (quote) => `$${quote.installationFee.toFixed(2)}` },
-    { label: 'Delivery Fee', render: (quote) => `$${quote.deliveryFee.toFixed(2)}` },
-    { label: 'Total Length', render: (quote) => `${quote.totalLength} ft` },
-    { label: 'Status', render: (quote) => quote.status },
-  ];
+  const handleAddNewQuote = () => {
+    setShowCustomerSelection(true);
+  };
+
+  const handleSelectCustomer = (customer: Customer) => {
+    setShowCustomerSelection(false);
+    setSelectedQuote({ customer } as QuoteWithCustomer);
+    setShowEditForm(true);
+  };
+
+  const handleView = (quote: QuoteWithCustomer) => {
+    setSelectedQuote(quote);
+    setShowViewDetails(true);
+  };
 
   return (
     <div>
       <h2>Quotes</h2>
-      <DataTable 
-        items={quotes} 
-        columns={columns} 
+      <button onClick={handleAddNewQuote}>Add New Quote</button>
+      <QuoteList 
+        quotes={quotes}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onView={handleView}
       />
       {showEditForm && selectedQuote && (
-        <QuoteForm 
+        <QuoteFormModal
           quote={selectedQuote}
           customer={selectedQuote.customer}
           onClose={handleCloseEditForm}
-          onQuoteCreated={fetchQuotes}
+          onQuoteCreated={handleAddOrUpdateQuote}
+        />
+      )}
+      {showCustomerSelection && (
+        <CustomerSelectionModal
+          onSelectCustomer={handleSelectCustomer}
+          onClose={() => setShowCustomerSelection(false)}
+        />
+      )}
+      {showViewDetails && selectedQuote && (
+        <ViewDetailsModal
+          entity={selectedQuote}
+          onClose={() => setShowViewDetails(false)}
         />
       )}
     </div>

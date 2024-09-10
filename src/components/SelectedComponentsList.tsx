@@ -1,6 +1,6 @@
 // src/components/RampPricingCalculator/SelectedComponentsList.tsx
 import React from 'react';
-import { RampComponent } from './types';
+import { RampComponent } from '../types/common';
 
 interface SelectedComponentsListProps {
   selectedComponents: { component: RampComponent; quantity: number }[];

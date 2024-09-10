@@ -1,81 +1,54 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Quote, Customer } from '../types/common';
-import { CrudService } from '../services/crudService';
-import RampPricingCalculator from './RampPricingCalculator';
 
 interface QuoteFormProps {
-  quote: Quote;
+  quote: Partial<Quote>;
   customer: Customer;
   onClose: () => void;
-  onQuoteCreated: () => void;
+  onSubmit: (quote: Partial<Quote>) => Promise<void>;
+  rampConfig: {
+    monthlyRate: number;
+    components: { [key: string]: number };
+    installationFee: number;
+    deliveryFee: number;
+    totalLength: number;
+  };
 }
 
-const quoteService = new CrudService<Quote>('quotes');
-
-const QuoteForm: React.FC<QuoteFormProps> = ({ quote, customer, onClose, onQuoteCreated }) => {
-  const [editedQuote, setEditedQuote] = useState<Partial<Quote>>(quote);
-
-  const handlePriceCalculated = useCallback((
-    monthlyRate: number,
-    components: { [key: string]: number },
-    installationFee: number,
-    deliveryFee: number,
-    totalLength: number
-  ) => {
-    setEditedQuote(prevQuote => ({
-      ...prevQuote,
-      monthlyRate,
-      components,
-      installationFee,
-      deliveryFee,
-      totalLength
-    }));
-  }, []);
+const QuoteForm: React.FC<QuoteFormProps> = ({ quote, customer, onClose, onSubmit, rampConfig }) => {
+  const [status, setStatus] = useState(quote.status || 'pending');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await quoteService.update(quote.id, editedQuote as Quote);
-      onQuoteCreated();
-      onClose();
-    } catch (error) {
-      console.error('Error updating quote: ', error);
-      alert('Error updating quote. Please try again.');
-    }
+    await onSubmit({ ...quote, status });
   };
 
-  const customerName = `${customer.firstName} ${customer.lastName}`;
-  const customerAddress = customer.address;
-
   return (
-    <div className="quote-form-overlay">
-      <div className="quote-form">
-        <h2>Edit Quote for {customerName}</h2>
-        <div className="customer-info">
-          <p><strong>Customer:</strong> {customerName}</p>
-          <p><strong>Address:</strong> {customerAddress}</p>
-        </div>
-        <RampPricingCalculator 
-          onPriceCalculated={handlePriceCalculated} 
-          customerAddress={customerAddress || ''}
-          initialComponents={editedQuote.components}
-        />
-        <div>
-          <strong>Monthly Rate:</strong> ${editedQuote.monthlyRate?.toFixed(2)}
-        </div>
-        <div>
-          <strong>Installation Fee:</strong> ${editedQuote.installationFee?.toFixed(2)}
-        </div>
-        <div>
-          <strong>Delivery Fee:</strong> ${editedQuote.deliveryFee?.toFixed(2)}
-        </div>
-        <div>
-          <strong>Total Ramp Length:</strong> {editedQuote.totalLength} ft
-        </div>
-        <button onClick={handleSubmit}>Update Quote</button>
-        <button onClick={onClose}>Cancel</button>
-      </div>
-    </div>
+    <form onSubmit={handleSubmit}>
+      <h3>Quote Summary</h3>
+      <p>Customer: {customer.firstName} {customer.lastName}</p>
+      <p>Address: {customer.address}</p>
+      <p>Monthly Rate: ${rampConfig.monthlyRate.toFixed(2)}</p>
+      <p>Installation Fee: ${rampConfig.installationFee.toFixed(2)}</p>
+      <p>Delivery Fee: ${rampConfig.deliveryFee.toFixed(2)}</p>
+      <p>Total Ramp Length: {rampConfig.totalLength} ft</p>
+      <h4>Components:</h4>
+      <ul>
+        {Object.entries(rampConfig.components).map(([componentId, quantity]) => (
+          <li key={componentId}>{componentId}: {quantity}</li>
+        ))}
+      </ul>
+      <label>
+        Status:
+        <select value={status} onChange={(e) => setStatus(e.target.value as Quote['status'])}>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </label>
+      <button type="submit">Save Quote</button>
+      <button type="button" onClick={onClose}>Cancel</button>
+    </form>
   );
 };
 

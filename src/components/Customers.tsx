@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
-import { Customer } from '../types/common';
+import { Customer, Quote } from '../types/common'; // Add Quote to the import
 import CustomerList from './CustomerList';
 import { useCustomers } from '../hooks/useCustomers';
 import AddCustomerModal from './AddCustomerModal';
 import QuoteFormModal from './QuoteFormModal';
+import ViewDetailsModal from './shared/ViewDetailsModal';  // Add this line
+import { useQuotes } from '../hooks/useQuotes';  // Add this import
+
+// Update the Customer type to include the quote property
+type CustomerWithQuote = Customer & { quote?: Quote };
 
 const Customers: React.FC = () => {
   const { customers, fetchCustomers, handleDelete } = useCustomers();
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const { handleAddOrUpdateQuote } = useQuotes();  // Add this line
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithQuote | null>(null);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showViewDetails, setShowViewDetails] = useState(false);  // Add this line
   const [isEditing, setIsEditing] = useState(false);
 
   const handleEdit = (customer: Customer) => {
@@ -40,6 +47,21 @@ const Customers: React.FC = () => {
     fetchCustomers();
   };
 
+  const handleView = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setShowViewDetails(true);
+  };
+
+  const handleQuoteCreated = async (quoteData: any) => {
+    await handleAddOrUpdateQuote(quoteData);
+    handleQuoteFormClose();
+  };
+
+  const handleEditQuote = (customer: Customer & { quote?: Quote }) => {
+    setSelectedCustomer(customer);
+    setShowQuoteForm(true);
+  };
+
   return (
     <div>
       <h2>Customers</h2>
@@ -60,12 +82,21 @@ const Customers: React.FC = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onCreateQuote={handleCreateQuote}
+        onEditQuote={handleEditQuote}
+        onView={handleView}  // Add this line
       />
       {showQuoteForm && selectedCustomer && (
         <QuoteFormModal
+          quote={selectedCustomer.quote}
           customer={selectedCustomer}
           onClose={handleQuoteFormClose}
-          onQuoteCreated={fetchCustomers}
+          onQuoteCreated={handleQuoteCreated}
+        />
+      )}
+      {showViewDetails && selectedCustomer && (
+        <ViewDetailsModal
+          entity={selectedCustomer}
+          onClose={() => setShowViewDetails(false)}
         />
       )}
     </div>

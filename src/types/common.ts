@@ -80,5 +80,11 @@ export interface RampComponent {
   id: string;
   name: string;
   length: number;
-  isLanding: boolean;
+  isLanding: boolean; // Add this line
+}
+
+export interface RampPricingCalculatorProps {
+  onPriceCalculated: (monthlyRate: number, componentsObject: { [key: string]: number }, installationFee: number, deliveryFee: number, totalLength: number) => void;
+  customerAddress: string;
+  initialComponents: { component: RampComponent; quantity: number }[];
 }

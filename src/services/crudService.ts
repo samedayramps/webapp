@@ -39,7 +39,7 @@ export class CrudService<T extends BaseModel> {
     return docRef.id;
   }
 
-  async update(id: string, data: Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>>): Promise<void> {
+  async update(id: string, data: Partial<Omit<T, 'id' | 'createdAt'>>): Promise<void> {
     const docRef = doc(db, this.collectionName, id);
     await updateDoc(docRef, {
       ...data,

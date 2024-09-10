@@ -12,6 +12,7 @@ import Payments from './components/Payments';
 import Agreements from './components/Agreements';
 import Rentals from './components/Rentals';
 import Settings from './components/Settings';
+import AdminSettings from './pages/AdminSettings';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -76,6 +77,7 @@ const App: React.FC = () => {
               <Route path="/agreements" element={<Agreements />} />
               <Route path="/rentals" element={<Rentals />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/" element={<RentalRequests />} />
             </Routes>
           ) : (

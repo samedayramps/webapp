@@ -5,8 +5,9 @@ import DataTable, { Column } from './shared/DataTable';
 interface RentalRequestListProps {
   rentalRequests: RentalRequest[];
   onEdit: (request: RentalRequest) => void;
-  onDelete: (id: string) => Promise<void>; // Updated to return a Promise<void>
-  onCreateCustomer: (request: RentalRequest) => Promise<void>; // Also updated for consistency
+  onDelete: (id: string) => Promise<void>;
+  onCreateCustomer: (request: RentalRequest) => Promise<void>;
+  onView: (request: RentalRequest) => void;
 }
 
 const RentalRequestList: React.FC<RentalRequestListProps> = ({
@@ -14,6 +15,7 @@ const RentalRequestList: React.FC<RentalRequestListProps> = ({
   onEdit,
   onDelete,
   onCreateCustomer,
+  onView,
 }) => {
   const columns: Column<RentalRequest>[] = [
     { label: 'Name', render: (request) => `${request.firstName} ${request.lastName}` },
@@ -32,6 +34,7 @@ const RentalRequestList: React.FC<RentalRequestListProps> = ({
       columns={columns} 
       onEdit={onEdit}
       onDelete={onDelete}
+      onView={onView}
       additionalAction={{
         label: 'Create Customer',
         action: onCreateCustomer,
