@@ -1,5 +1,5 @@
 import React from 'react';
-import { RampComponent } from './types';
+import { RampComponent } from '../../types/types';
 
 interface RampComponentsManagerProps {
   rampComponents: RampComponent[];

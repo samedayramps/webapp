@@ -1,5 +1,5 @@
 import React from 'react';
-import { Customer } from '../types/common';
+import { Customer } from '../../types/common';
 
 interface CustomerInfoProps {
   customer: Customer;

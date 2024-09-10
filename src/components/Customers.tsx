@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Customer, Quote } from '../types/common'; // Add Quote to the import
-import CustomerList from './CustomerList';
+import CustomerList from './customers/CustomerList';
 import { useCustomers } from '../hooks/useCustomers';
 import AddCustomerModal from './AddCustomerModal';
-import QuoteFormModal from './QuoteFormModal';
+import QuoteFormModal from './quotes/QuoteFormModal';
 import ViewDetailsModal from './shared/ViewDetailsModal';  // Add this line
 import { useQuotes } from '../hooks/useQuotes';  // Add this import
 

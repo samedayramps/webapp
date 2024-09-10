@@ -1,5 +1,5 @@
 import React from 'react';
-import { RentalRequest } from '../types/common';
+import { RentalRequest } from '../../types/common';
 import RentalRequestForm from './RentalRequestForm';
 
 interface RentalRequestFormModalProps {
@@ -22,7 +22,7 @@ const RentalRequestFormModal: React.FC<RentalRequestFormModalProps> = ({
       <div className="modal-content">
         <RentalRequestForm
           initialData={request || undefined}
-          onSubmit={async (data) => {
+          onSubmit={async (data: Partial<RentalRequest>) => {
             await onSubmit(data);
             onRequestAdded();
           }}

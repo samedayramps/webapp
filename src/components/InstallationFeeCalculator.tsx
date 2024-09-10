@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { RampComponent } from './types';
+import { RampComponent } from '../types/types';
 
 interface InstallationFeeCalculatorProps {
   selectedComponents: { component: RampComponent; quantity: number }[];

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { Customer, Quote } from '../types/common';
-import QuoteForm from './quotes/QuoteForm';
-import RampPricingCalculator from './ramp/RampPricingCalculator';
+import { Customer, Quote } from '../../types/common';
+import QuoteForm from './QuoteForm';
+import RampPricingCalculator from '../ramp/RampPricingCalculator';
 import { Timestamp } from 'firebase/firestore';
 
 interface QuoteFormModalProps {

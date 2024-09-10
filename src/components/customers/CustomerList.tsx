@@ -1,6 +1,6 @@
 import React from 'react';
-import { Customer, Quote } from '../types/common';
-import DataTable, { Column } from './shared/DataTable';
+import { Customer, Quote } from '../../types/common';
+import DataTable, { Column } from '../shared/DataTable';
 
 interface CustomerListProps {
   customers: (Customer & { quote?: Quote })[];

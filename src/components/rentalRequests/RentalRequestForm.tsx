@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { RentalRequest } from '../types/common';
-import AddressField from './shared/AddressField';
-import FormInput from './shared/FormInput';
+import { RentalRequest } from '../../types/common';
+import AddressField from '../shared/AddressField';
+import FormInput from '../shared/FormInput';
 
 interface RentalRequestFormProps {
   initialData?: Partial<RentalRequest>;

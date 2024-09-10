@@ -1,6 +1,6 @@
 // src/components/QuoteDetails.tsx
 import React from 'react';
-import { QuoteWithCustomer } from '../types/common';
+import { QuoteWithCustomer } from '../../types/common';
 
 interface QuoteDetailsProps {
   quote: QuoteWithCustomer;

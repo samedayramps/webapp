@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { PriceVariablesType } from '../types/common';
-import PriceVariablesManager from './PriceVariablesManager';
+import { PriceVariablesType } from '../../types/common';
+import PriceVariablesManager from '../PriceVariablesManager';
 import { Timestamp } from 'firebase/firestore';
 
 // ... other imports and code

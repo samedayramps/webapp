@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuotes, QuoteWithCustomer } from '../hooks/useQuotes';
-import QuoteList from './QuoteList';
-import QuoteFormModal from './QuoteFormModal';
+import QuoteList from './quotes/QuoteList';
+import QuoteFormModal from './quotes/QuoteFormModal';
 import CustomerSelectionModal from './CustomerSelectionModal';
 import ViewDetailsModal from './shared/ViewDetailsModal';
 import { Customer } from '../types/common';

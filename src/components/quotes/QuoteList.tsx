@@ -1,6 +1,6 @@
 import React from 'react';
-import { QuoteWithCustomer } from '../hooks/useQuotes';
-import DataTable, { Column } from './shared/DataTable';
+import { QuoteWithCustomer } from '../../hooks/useQuotes';
+import DataTable, { Column } from '../shared/DataTable';
 
 interface QuoteListProps {
   quotes: QuoteWithCustomer[];

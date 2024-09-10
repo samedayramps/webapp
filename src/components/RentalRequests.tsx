@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import RentalRequestList from './RentalRequestList';
+import RentalRequestList from './rentalRequests/RentalRequestList';
 import { useRentalRequests } from '../hooks/useRentalRequests';
-import RentalRequestFormModal from './RentalRequestFormModal';
+import RentalRequestFormModal from './rentalRequests/RentalRequestFormModal';
 import ViewDetailsModal from './shared/ViewDetailsModal';
 import { RentalRequest } from '../types/common'; // Add this import
 

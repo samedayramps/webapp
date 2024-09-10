@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { RampComponent, PriceVariablesType } from '../types/common';
-import ComponentSelector from './ramp/ComponentSelector';
-import SelectedComponentsList from './SelectedComponentsList';
-import { calculatePricing } from '../utils/pricingCalculations';
-import { CrudService } from '../services/crudService';
+import { RampComponent, PriceVariablesType } from '../../types/common';
+import ComponentSelector from './ComponentSelector';
+import SelectedComponentsList from '../SelectedComponentsList';
+import { calculatePricing } from '../../utils/pricingCalculations';
+import { CrudService } from '../../services/crudService';
 import './RampPricingCalculator.css';
 
 const priceVariablesService = new CrudService<PriceVariablesType>('priceVariables');

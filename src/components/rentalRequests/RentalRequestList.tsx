@@ -1,6 +1,6 @@
 import React from 'react';
-import { RentalRequest } from '../types/common';
-import DataTable, { Column } from './shared/DataTable';
+import { RentalRequest } from '../../types/common';
+import DataTable, { Column } from '../shared/DataTable';
 
 interface RentalRequestListProps {
   rentalRequests: RentalRequest[];

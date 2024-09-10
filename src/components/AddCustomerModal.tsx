@@ -1,6 +1,6 @@
 import React from 'react';
 import { Customer } from '../types/common';
-import AddCustomerForm from './AddCustomerForm';
+import AddCustomerForm from './customers/AddCustomerForm';
 
 interface AddCustomerModalProps {
   customer: Customer | null;

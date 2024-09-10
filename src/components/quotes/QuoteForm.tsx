@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Quote, Customer } from '../types/common';
+import { Quote, Customer } from '../../types/common';
 
 interface QuoteFormProps {
   quote: Partial<Quote>;

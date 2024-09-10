@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { CrudService } from '../services/crudService';
-import { Customer } from '../types/common';
-import AddressField from './shared/AddressField';
+import { CrudService } from '../../services/crudService';
+import { Customer } from '../../types/common';
+import AddressField from '../shared/AddressField';
 import { Timestamp } from 'firebase/firestore';
 
 interface AddCustomerFormProps {

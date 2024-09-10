@@ -1,6 +1,6 @@
 // src/components/RampPricingCalculator/ComponentSelector.tsx
 import React from 'react';
-import { RampComponent } from '../types/common';
+import { RampComponent } from '../../types/common';
 
 interface ComponentSelectorProps {
   rampComponents: RampComponent[];
