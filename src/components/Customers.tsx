@@ -5,22 +5,15 @@ import DataTable, { Column } from './shared/DataTable';
 import QuoteForm from './QuoteForm';
 import { writeBatch, doc } from 'firebase/firestore';
 import { db } from '../firebase';  // Make sure to import your Firestore instance
+import AddCustomerForm from './AddCustomerForm';
 
 const customerService = new CrudService<Customer>('customers');
 
 const Customers: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [formData, setFormData] = useState<Partial<Customer>>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    quoteId: undefined,
-  });
-  const [isEditing, setIsEditing] = useState(false);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
     fetchCustomers();
@@ -31,34 +24,9 @@ const Customers: React.FC = () => {
     setCustomers(fetchedCustomers);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({ ...prevState, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (isEditing && formData.id) {
-        await customerService.update(formData.id, formData);
-      } else {
-        await customerService.create(formData as Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>);
-      }
-      fetchCustomers();
-      resetForm();
-    } catch (error) {
-      console.error('Error adding/updating customer: ', error);
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({ firstName: '', lastName: '', email: '', phone: '', address: '', quoteId: undefined });
-    setIsEditing(false);
-  };
-
   const handleEdit = (customer: Customer) => {
-    setFormData(customer);
-    setIsEditing(true);
+    // Implement edit functionality if needed
+    console.log('Edit customer:', customer);
   };
 
   const handleDelete = async (id: string) => {
@@ -98,7 +66,15 @@ const Customers: React.FC = () => {
   const handleQuoteFormClose = () => {
     setShowQuoteForm(false);
     setSelectedCustomer(null);
-    // After closing the quote form, fetch the updated list of customers
+    fetchCustomers();
+  };
+
+  const handleAddCustomer = () => {
+    setShowAddForm(true);
+  };
+
+  const handleCustomerAdded = () => {
+    setShowAddForm(false);
     fetchCustomers();
   };
 
@@ -112,50 +88,19 @@ const Customers: React.FC = () => {
   return (
     <div>
       <h2>Customers</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="firstName"
-          value={formData.firstName}
-          onChange={handleInputChange}
-          placeholder="First Name"
-          required
-        />
-        <input
-          type="text"
-          name="lastName"
-          value={formData.lastName}
-          onChange={handleInputChange}
-          placeholder="Last Name"
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleInputChange}
-          placeholder="Email"
-          required
-        />
-        <input
-          type="tel"
-          name="phone"
-          value={formData.phone}
-          onChange={handleInputChange}
-          placeholder="Phone"
-          required
-        />
-        <input
-          type="text"
-          name="address"
-          value={formData.address}
-          onChange={handleInputChange}
-          placeholder="Address"
-          required
-        />
-        <button type="submit">{isEditing ? 'Update Customer' : 'Add Customer'}</button>
-        {isEditing && <button onClick={resetForm}>Cancel Edit</button>}
-      </form>
+      <button onClick={handleAddCustomer}>Add New Customer</button>
+      
+      {showAddForm && (
+        <div className="modal">
+          <div className="modal-content">
+            <AddCustomerForm
+              onCustomerAdded={handleCustomerAdded}
+              onCancel={() => setShowAddForm(false)}
+            />
+          </div>
+        </div>
+      )}
+
       <h3>Customer List</h3>
       <DataTable 
         items={customers} 
@@ -172,7 +117,7 @@ const Customers: React.FC = () => {
         <QuoteForm 
           customer={selectedCustomer} 
           onClose={handleQuoteFormClose}
-          onQuoteCreated={fetchCustomers} // This will refresh the customer list after quote creation
+          onQuoteCreated={fetchCustomers}
         />
       )}
     </div>

@@ -11,9 +11,10 @@ import Payments from './components/Payments';
 import Agreements from './components/Agreements';
 import Rentals from './components/Rentals';
 import PriceVariables from './components/PriceVariables';
+import Settings from './components/Settings';
 
 // Define the possible active components
-type ActiveComponent = 'rentalRequests' | 'customers' | 'quotes' | 'payments' | 'agreements' | 'rentals';
+type ActiveComponent = 'rentalRequests' | 'customers' | 'quotes' | 'payments' | 'agreements' | 'rentals' | 'settings' | null;
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -43,7 +44,7 @@ const App: React.FC = () => {
     }
   };
 
-  const renderComponent = (): JSX.Element => {
+  const renderComponent = (): JSX.Element | null => {
     switch (activeComponent) {
       case 'rentalRequests':
         return <RentalRequests />;
@@ -57,8 +58,10 @@ const App: React.FC = () => {
         return <Agreements />;
       case 'rentals':
         return <Rentals />;
+      case 'settings':
+        return <Settings onClose={() => setActiveComponent('rentalRequests')} />;
       default:
-        return <RentalRequests />;
+        return null;
     }
   };
 

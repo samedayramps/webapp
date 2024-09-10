@@ -1,90 +1,56 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
-
-interface RampComponent {
-  id: string;
-  name: string;
-  price: number;
-  length: number;
-  isLanding: boolean;
-}
-
-interface RampPricingCalculatorProps {
-  onPriceCalculated: (
-    upfrontFee: number,
-    monthlyRate: number,
-    components: { [key: string]: number },
-    installationFee: number,
-    deliveryFee: number,
-    totalLength: number
-  ) => void;
-}
+// src/components/RampPricingCalculator/RampPricingCalculator.tsx
+import React, { useState, useCallback, useEffect } from 'react';
+import { RampComponent, RampPricingCalculatorProps } from './types';
+import RampComponentsManager from './RampComponentsManager';
+import PriceVariablesManager from './PriceVariablesManager';
+import DistanceCalculator from './DistanceCalculator';
+import PriceCalculator from './PriceCalculator';
+import InstallationFeeCalculator from './InstallationFeeCalculator';
+import FeesAndRatesDisplay from './FeesAndRatesDisplay';
+import './RampPricingCalculator.css'; // Make sure to create this CSS file
 
 const rampComponents: RampComponent[] = [
-  { id: 'R4', name: '4ft Ramp', price: 100, length: 4, isLanding: false },
-  { id: 'R5', name: '5ft Ramp', price: 120, length: 5, isLanding: false },
-  { id: 'R6', name: '6ft Ramp', price: 140, length: 6, isLanding: false },
-  { id: 'R7', name: '7ft Ramp', price: 160, length: 7, isLanding: false },
-  { id: 'R8', name: '8ft Ramp', price: 180, length: 8, isLanding: false },
-  { id: 'L54', name: '5x4 Landing', price: 200, length: 0, isLanding: true },
-  { id: 'L55', name: '5x5 Landing', price: 220, length: 0, isLanding: true },
-  { id: 'L58', name: '5x8 Landing', price: 240, length: 0, isLanding: true },
+  { id: 'R4', name: '4ft Ramp', length: 4, isLanding: false },
+  { id: 'R5', name: '5ft Ramp', length: 5, isLanding: false },
+  { id: 'R6', name: '6ft Ramp', length: 6, isLanding: false },
+  { id: 'R7', name: '7ft Ramp', length: 7, isLanding: false },
+  { id: 'R8', name: '8ft Ramp', length: 8, isLanding: false },
+  { id: 'L54', name: '5x4 Landing', length: 5, isLanding: true },
+  { id: 'L55', name: '5x5 Landing', length: 5, isLanding: true },
+  { id: 'L58', name: '5x8 Landing', length: 5, isLanding: true },
 ];
 
-const RampPricingCalculator: React.FC<RampPricingCalculatorProps> = ({ onPriceCalculated }) => {
+const RampPricingCalculator: React.FC<RampPricingCalculatorProps> = ({ onPriceCalculated, customerAddress, initialComponents }) => {
   const [selectedComponents, setSelectedComponents] = useState<{ component: RampComponent; quantity: number }[]>([]);
-  const [installationFee, setInstallationFee] = useState(500);
-  const [deliveryFee, setDeliveryFee] = useState(200);
-  const [rentalDuration, setRentalDuration] = useState(1);
-  const [componentPrices, setComponentPrices] = useState<{ [key: string]: number }>({});
+  const [priceVariables, setPriceVariables] = useState({
+    baseDeliveryFee: 100,
+    deliveryFeePerMile: 2,
+    installFeePerRampSection: 50,
+    installFeePerLanding: 100,
+    monthlyRatePerFoot: 10,
+    warehouseAddress: '',
+  });
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [monthlyRate, setMonthlyRate] = useState(0);
+  const [installationFee, setInstallationFee] = useState(0);
+  const [totalLength, setTotalLength] = useState(0);
 
   useEffect(() => {
-    const fetchPriceVariables = async () => {
-      const docRef = doc(db, 'settings', 'priceVariables');
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setInstallationFee(data.installationFee);
-        setDeliveryFee(data.deliveryFee);
-        setComponentPrices(data.componentPrices);
-      }
-    };
-    fetchPriceVariables();
-  }, []);
+    if (initialComponents) {
+      const initialSelectedComponents = Object.entries(initialComponents).map(([id, quantity]) => {
+        const component = rampComponents.find(c => c.id === id);
+        return component ? { component, quantity } : null;
+      }).filter((item): item is { component: RampComponent; quantity: number } => item !== null);
 
-  const calculatePrice = useCallback(() => {
-    const totalComponentCost = selectedComponents.reduce((total, { component, quantity }) => {
-      return total + component.price * quantity;
-    }, 0);
+      setSelectedComponents(initialSelectedComponents);
+    }
+  }, [initialComponents]);
 
-    const upfrontFee = totalComponentCost + installationFee + deliveryFee;
-    const monthlyRate = Math.round(upfrontFee / rentalDuration);
-
-    const componentsObject = selectedComponents.reduce((obj, { component, quantity }) => {
-      obj[component.id] = quantity;
-      return obj;
-    }, {} as { [key: string]: number });
-
-    const totalLength = selectedComponents.reduce((total, { component, quantity }) => {
-      // Only add length for non-landing components
-      return total + (component.isLanding ? 0 : component.length * quantity);
-    }, 0);
-
-    onPriceCalculated(upfrontFee, monthlyRate, componentsObject, installationFee, deliveryFee, totalLength);
-  }, [selectedComponents, installationFee, deliveryFee, rentalDuration, onPriceCalculated]);
-
-  useEffect(() => {
-    calculatePrice();
-  }, [calculatePrice]);
-
-  const handleAddComponent = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = e.target.value;
+  const handleAddComponent = (selectedId: string) => {
     const component = rampComponents.find(c => c.id === selectedId);
     if (component) {
       setSelectedComponents(prev => [...prev, { component, quantity: 1 }]);
     }
-    e.target.value = ''; // Reset dropdown
   };
 
   const handleQuantityChange = (index: number, quantity: number) => {
@@ -97,66 +63,81 @@ const RampPricingCalculator: React.FC<RampPricingCalculatorProps> = ({ onPriceCa
     setSelectedComponents(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleMonthlyRateCalculated = useCallback((calculatedMonthlyRate: number, calculatedTotalLength: number) => {
+    setMonthlyRate(calculatedMonthlyRate);
+    setTotalLength(calculatedTotalLength);
+  }, []);
+
+  const handleInstallationFeeCalculated = useCallback((calculatedInstallationFee: number) => {
+    setInstallationFee(calculatedInstallationFee);
+  }, []);
+
+  const handlePriceCalculated = useCallback(() => {
+    onPriceCalculated(
+      monthlyRate,
+      selectedComponents.reduce((obj, { component, quantity }) => {
+        obj[component.id] = quantity;
+        return obj;
+      }, {} as { [key: string]: number }),
+      installationFee,
+      deliveryFee,
+      totalLength
+    );
+  }, [onPriceCalculated, monthlyRate, selectedComponents, installationFee, deliveryFee, totalLength]);
+
+  useEffect(() => {
+    handlePriceCalculated();
+  }, [handlePriceCalculated]);
+
   return (
-    <div>
-      <h3>Ramp Components</h3>
-      <select onChange={handleAddComponent} defaultValue="">
-        <option value="" disabled>Select a component</option>
-        {rampComponents.map((component) => (
-          <option key={component.id} value={component.id}>
-            {component.name} (${componentPrices[component.id] || component.price})
-          </option>
-        ))}
-      </select>
-      <ul>
-        {selectedComponents.map(({ component, quantity }, index) => (
-          <li key={index}>
-            {component.name} - ${componentPrices[component.id] || component.price}
-            <input
-              type="number"
-              min="1"
-              value={quantity}
-              onChange={(e) => handleQuantityChange(index, parseInt(e.target.value))}
-            />
-            <button onClick={() => handleRemoveComponent(index)}>Remove</button>
-          </li>
-        ))}
-      </ul>
-      <div>
-        <label>
-          Installation Fee:
-          <input
-            type="number"
-            min="0"
-            value={installationFee}
-            onChange={(e) => setInstallationFee(parseInt(e.target.value))}
-          />
-        </label>
+    <div className="ramp-pricing-calculator">
+      <PriceVariablesManager onVariablesLoaded={setPriceVariables} />
+      
+      <DistanceCalculator
+        warehouseAddress={priceVariables.warehouseAddress}
+        customerAddress={customerAddress}
+        baseDeliveryFee={priceVariables.baseDeliveryFee}
+        deliveryFeePerMile={priceVariables.deliveryFeePerMile}
+        onDistanceCalculated={(_, fee: number) => {
+          setDeliveryFee(fee);
+        }}
+      />
+
+      <div className="ramp-pricing-calculator-component">
+        <h3>Ramp Components</h3>
+        <RampComponentsManager
+          rampComponents={rampComponents}
+          selectedComponents={selectedComponents}
+          monthlyRatePerFoot={priceVariables.monthlyRatePerFoot}
+          onAddComponent={handleAddComponent}
+          onQuantityChange={handleQuantityChange}
+          onRemoveComponent={handleRemoveComponent}
+        />
       </div>
-      <div>
-        <label>
-          Delivery Fee:
-          <input
-            type="number"
-            min="0"
-            value={deliveryFee}
-            onChange={(e) => setDeliveryFee(parseInt(e.target.value))}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          Rental Duration (months):
-          <input
-            type="number"
-            min="1"
-            value={rentalDuration}
-            onChange={(e) => setRentalDuration(parseInt(e.target.value))}
-          />
-        </label>
+
+      <PriceCalculator
+        selectedComponents={selectedComponents}
+        monthlyRatePerFoot={priceVariables.monthlyRatePerFoot}
+        onMonthlyRateCalculated={handleMonthlyRateCalculated}
+      />
+
+      <InstallationFeeCalculator
+        selectedComponents={selectedComponents}
+        installFeePerRampSection={priceVariables.installFeePerRampSection}
+        installFeePerLanding={priceVariables.installFeePerLanding}
+        onInstallationFeeCalculated={handleInstallationFeeCalculated}
+      />
+
+      <div className="ramp-pricing-calculator-component">
+        <h3>Fees and Rates Summary</h3>
+        <FeesAndRatesDisplay
+          installationFee={installationFee}
+          deliveryFee={deliveryFee}
+          monthlyRate={monthlyRate}
+        />
       </div>
     </div>
   );
 };
 
-export default RampPricingCalculator;
+export default React.memo(RampPricingCalculator);

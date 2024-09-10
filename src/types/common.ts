@@ -34,7 +34,6 @@ export interface Quote extends BaseEntity {
   customerId: string;
   rentalRequestId: string;
   components: { [key: string]: number };
-  upfrontFee: number;
   monthlyRate: number;
   installationFee: number;
   deliveryFee: number;
