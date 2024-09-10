@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { User } from 'firebase/auth';
 import { signInWithPopup, signOut } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
@@ -10,16 +11,10 @@ import Quotes from './components/Quotes';
 import Payments from './components/Payments';
 import Agreements from './components/Agreements';
 import Rentals from './components/Rentals';
-import PriceVariables from './components/PriceVariables';
 import Settings from './components/Settings';
-
-// Define the possible active components
-type ActiveComponent = 'rentalRequests' | 'customers' | 'quotes' | 'payments' | 'agreements' | 'rentals' | 'settings' | null;
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [activeComponent, setActiveComponent] = useState<ActiveComponent>('rentalRequests');
-  const [showPriceVariables, setShowPriceVariables] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -44,56 +39,51 @@ const App: React.FC = () => {
     }
   };
 
-  const renderComponent = (): JSX.Element | null => {
-    switch (activeComponent) {
-      case 'rentalRequests':
-        return <RentalRequests />;
-      case 'customers':
-        return <Customers />;
-      case 'quotes':
-        return <Quotes />;
-      case 'payments':
-        return <Payments />;
-      case 'agreements':
-        return <Agreements />;
-      case 'rentals':
-        return <Rentals />;
-      case 'settings':
-        return <Settings onClose={() => setActiveComponent('rentalRequests')} />;
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Ramp Rental Management</h1>
-        {user ? (
-          <div>
-            <p>Welcome, {user.displayName || user.email}</p>
-            <button onClick={handleSignOut}>Sign Out</button>
-            <button onClick={() => setShowPriceVariables(true)}>Settings</button>
-          </div>
-        ) : (
-          <button onClick={handleSignIn}>Sign In with Google</button>
+    <Router>
+      <div className="App">
+        <header className="App-header">
+          <h1>Ramp Rental Management</h1>
+          {user ? (
+            <div>
+              <p>Welcome, {user.displayName || user.email}</p>
+              <button onClick={handleSignOut}>Sign Out</button>
+              <Link to="/settings">
+                <button>Settings</button>
+              </Link>
+            </div>
+          ) : (
+            <button onClick={handleSignIn}>Sign In with Google</button>
+          )}
+        </header>
+        {user && (
+          <nav>
+            <Link to="/rental-requests"><button>Rental Requests</button></Link>
+            <Link to="/customers"><button>Customers</button></Link>
+            <Link to="/quotes"><button>Quotes</button></Link>
+            <Link to="/payments"><button>Payments</button></Link>
+            <Link to="/agreements"><button>Agreements</button></Link>
+            <Link to="/rentals"><button>Rentals</button></Link>
+          </nav>
         )}
-      </header>
-      {user && (
-        <nav>
-          <button onClick={() => setActiveComponent('rentalRequests')}>Rental Requests</button>
-          <button onClick={() => setActiveComponent('customers')}>Customers</button>
-          <button onClick={() => setActiveComponent('quotes')}>Quotes</button>
-          <button onClick={() => setActiveComponent('payments')}>Payments</button>
-          <button onClick={() => setActiveComponent('agreements')}>Agreements</button>
-          <button onClick={() => setActiveComponent('rentals')}>Rentals</button>
-        </nav>
-      )}
-      <main>
-        {user ? renderComponent() : <p>Please sign in to access the application.</p>}
-      </main>
-      {showPriceVariables && <PriceVariables onClose={() => setShowPriceVariables(false)} />}
-    </div>
+        <main>
+          {user ? (
+            <Routes>
+              <Route path="/rental-requests" element={<RentalRequests />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/quotes" element={<Quotes />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/agreements" element={<Agreements />} />
+              <Route path="/rentals" element={<Rentals />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/" element={<RentalRequests />} />
+            </Routes>
+          ) : (
+            <p>Please sign in to access the application.</p>
+          )}
+        </main>
+      </div>
+    </Router>
   );
 };
 

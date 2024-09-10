@@ -1,4 +1,4 @@
-// src/components/RampPricingCalculator/DistanceCalculator.tsx
+/// <reference types="@types/google.maps" />
 import React, { useEffect, useState } from 'react';
 
 interface DistanceCalculatorProps {
@@ -35,7 +35,7 @@ const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({
     const calculateDistance = () => {
       if (isGoogleMapsLoaded && warehouseAddress && customerAddress) {
         const service = new google.maps.DistanceMatrixService();
-        const request = {
+        const request: google.maps.DistanceMatrixRequest = {
           origins: [warehouseAddress],
           destinations: [customerAddress],
           travelMode: google.maps.TravelMode.DRIVING,

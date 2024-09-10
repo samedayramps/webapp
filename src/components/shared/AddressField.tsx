@@ -1,50 +1,54 @@
-import React, { useState } from 'react';
-import { useLoadScript, Autocomplete } from '@react-google-maps/api';
+import React, { useEffect, useRef, useCallback } from 'react';
 
 interface AddressFieldProps {
-  value?: string;  // Make value optional
+  value: string;
   onChange: (address: string) => void;
   placeholder?: string;
 }
 
-// Define libraries array outside of the component
-const libraries: ("places")[] = ['places'];
+const AddressField: React.FC<AddressFieldProps> = ({ value, onChange, placeholder = 'Enter address' }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
 
-const AddressField: React.FC<AddressFieldProps> = ({ value = '', onChange, placeholder = 'Enter address' }) => {
-  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+  const initAutocomplete = useCallback(() => {
+    if (inputRef.current && window.google) {
+      const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
+        types: ['address'],
+      });
 
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
-    libraries: libraries,
-  });
-
-  const onLoad = (autocomplete: google.maps.places.Autocomplete) => {
-    setAutocomplete(autocomplete);
-  };
-
-  const onPlaceChanged = () => {
-    if (autocomplete !== null) {
-      const place = autocomplete.getPlace();
-      const address = place.formatted_address;
-      if (address) {
-        onChange(address);
-      }
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        if (place.formatted_address) {
+          onChange(place.formatted_address);
+        }
+      });
     }
-  };
+  }, [onChange]);
 
-  if (loadError) return <div>Error loading Google Maps</div>;
-  if (!isLoaded) return <div>Loading...</div>;
+  useEffect(() => {
+    const loadGoogleMapsScript = () => {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.async = true;
+      script.onload = initAutocomplete;
+      document.head.appendChild(script);
+    };
+
+    if (!window.google) {
+      loadGoogleMapsScript();
+    } else {
+      initAutocomplete();
+    }
+  }, [initAutocomplete]);
 
   return (
-    <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        style={{ width: '100%' }}
-      />
-    </Autocomplete>
+    <input
+      ref={inputRef}
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      style={{ width: '100%' }}
+    />
   );
 };
 

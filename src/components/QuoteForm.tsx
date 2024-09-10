@@ -1,26 +1,19 @@
 import React, { useState, useCallback } from 'react';
-import { Customer, Quote } from '../types/common';
+import { Quote, Customer } from '../types/common';
 import { CrudService } from '../services/crudService';
 import RampPricingCalculator from './RampPricingCalculator';
-import CustomerInfo from './CustomerInfo';
 
 interface QuoteFormProps {
+  quote: Quote;
   customer: Customer;
   onClose: () => void;
   onQuoteCreated: () => void;
 }
 
 const quoteService = new CrudService<Quote>('quotes');
-const customerService = new CrudService<Customer>('customers');
 
-const QuoteForm: React.FC<QuoteFormProps> = ({ customer, onClose, onQuoteCreated }) => {
-  const [quote, setQuote] = useState<Partial<Quote>>({
-    components: {},
-    monthlyRate: 0,
-    installationFee: 0,
-    deliveryFee: 0,
-    totalLength: 0,
-  });
+const QuoteForm: React.FC<QuoteFormProps> = ({ quote, customer, onClose, onQuoteCreated }) => {
+  const [editedQuote, setEditedQuote] = useState<Partial<Quote>>(quote);
 
   const handlePriceCalculated = useCallback((
     monthlyRate: number,
@@ -29,7 +22,7 @@ const QuoteForm: React.FC<QuoteFormProps> = ({ customer, onClose, onQuoteCreated
     deliveryFee: number,
     totalLength: number
   ) => {
-    setQuote(prevQuote => ({
+    setEditedQuote(prevQuote => ({
       ...prevQuote,
       monthlyRate,
       components,
@@ -42,39 +35,44 @@ const QuoteForm: React.FC<QuoteFormProps> = ({ customer, onClose, onQuoteCreated
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const quoteData: Omit<Quote, 'id' | 'createdAt' | 'updatedAt'> = {
-        customerId: customer.id,
-        rentalRequestId: customer.rentalRequestId || '',
-        components: quote.components || {},
-        monthlyRate: quote.monthlyRate || 0,
-        installationFee: quote.installationFee || 0,
-        deliveryFee: quote.deliveryFee || 0,
-        totalLength: quote.totalLength || 0,
-        status: 'pending',
-      };
-
-      const newQuoteId = await quoteService.create(quoteData);
-      await customerService.update(customer.id, { quoteId: newQuoteId });
-
-      alert('Quote created successfully!');
+      await quoteService.update(quote.id, editedQuote as Quote);
       onQuoteCreated();
       onClose();
     } catch (error) {
-      console.error('Error creating quote: ', error);
-      alert('Error creating quote. Please try again.');
+      console.error('Error updating quote: ', error);
+      alert('Error updating quote. Please try again.');
     }
   };
+
+  const customerName = `${customer.firstName} ${customer.lastName}`;
+  const customerAddress = customer.address;
 
   return (
     <div className="quote-form-overlay">
       <div className="quote-form">
-        <h2>Create Quote for {customer.firstName} {customer.lastName}</h2>
-        <CustomerInfo customer={customer} />
+        <h2>Edit Quote for {customerName}</h2>
+        <div className="customer-info">
+          <p><strong>Customer:</strong> {customerName}</p>
+          <p><strong>Address:</strong> {customerAddress}</p>
+        </div>
         <RampPricingCalculator 
           onPriceCalculated={handlePriceCalculated} 
-          customerAddress={customer.address}
+          customerAddress={customerAddress || ''}
+          initialComponents={editedQuote.components}
         />
-        <button onClick={handleSubmit}>Create Quote</button>
+        <div>
+          <strong>Monthly Rate:</strong> ${editedQuote.monthlyRate?.toFixed(2)}
+        </div>
+        <div>
+          <strong>Installation Fee:</strong> ${editedQuote.installationFee?.toFixed(2)}
+        </div>
+        <div>
+          <strong>Delivery Fee:</strong> ${editedQuote.deliveryFee?.toFixed(2)}
+        </div>
+        <div>
+          <strong>Total Ramp Length:</strong> {editedQuote.totalLength} ft
+        </div>
+        <button onClick={handleSubmit}>Update Quote</button>
         <button onClick={onClose}>Cancel</button>
       </div>
     </div>

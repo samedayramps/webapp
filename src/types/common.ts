@@ -61,3 +61,24 @@ export interface Rental extends BaseEntity {
   endDate: Timestamp;
   status: string;
 }
+
+export interface QuoteWithCustomer extends Quote {
+  customerName: string;
+  customerAddress: string;
+}
+
+export interface PriceVariablesType extends BaseEntity {
+  baseDeliveryFee: number;
+  deliveryFeePerMile: number;
+  installFeePerRampSection: number;
+  installFeePerLanding: number;
+  monthlyRatePerFoot: number;
+  warehouseAddress: string;
+}
+
+export interface RampComponent {
+  id: string;
+  name: string;
+  length: number;
+  isLanding: boolean;
+}

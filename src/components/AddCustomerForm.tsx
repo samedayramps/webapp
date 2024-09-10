@@ -2,20 +2,25 @@ import React, { useState } from 'react';
 import { CrudService } from '../services/crudService';
 import { Customer } from '../types/common';
 import AddressField from './shared/AddressField';
+import { Timestamp } from 'firebase/firestore';
 
 interface AddCustomerFormProps {
+  customer?: Customer | null;
+  isEditing?: boolean;
   onCustomerAdded: () => void;
   onCancel: () => void;
 }
 
-const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ onCustomerAdded, onCancel }) => {
-  const [formData, setFormData] = useState<Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-  });
+const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ customer, isEditing = false, onCustomerAdded, onCancel }) => {
+  const [formData, setFormData] = useState<Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>>(
+    customer || {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      address: '',
+    }
+  );
 
   const customerService = new CrudService<Customer>('customers');
 
@@ -31,7 +36,12 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ onCustomerAdded, onCa
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await customerService.create(formData);
+      const customerData = {
+        ...formData,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      };
+      await customerService.create(customerData);
       alert('Customer added successfully!');
       onCustomerAdded();
     } catch (error) {
@@ -42,7 +52,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ onCustomerAdded, onCa
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2>Add New Customer</h2>
+      <h2>{isEditing ? 'Edit Customer' : 'Add New Customer'}</h2>
       <div>
         <label htmlFor="firstName">First Name:</label>
         <input
@@ -95,7 +105,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ onCustomerAdded, onCa
           placeholder="Enter customer address"
         />
       </div>
-      <button type="submit">Add Customer</button>
+      <button type="submit">{isEditing ? 'Update Customer' : 'Add Customer'}</button>
       <button type="button" onClick={onCancel}>Cancel</button>
     </form>
   );

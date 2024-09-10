@@ -1,42 +1,32 @@
-// src/components/RampPricingCalculator/PriceVariablesManager.tsx
-import React, { useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { CrudService } from '../services/crudService';
+import { PriceVariablesType, BaseEntity } from '../types/common';
 
-interface PriceVariablesManagerProps {
-  onVariablesLoaded: (variables: {
-    baseDeliveryFee: number;
-    deliveryFeePerMile: number;
-    installFeePerRampSection: number;
-    installFeePerLanding: number;
-    monthlyRatePerFoot: number;
-    warehouseAddress: string;
-  }) => void;
-}
+class PriceVariablesManager {
+  private static crudService = new CrudService<PriceVariablesType & BaseEntity>('priceVariables');
 
-const PriceVariablesManager: React.FC<PriceVariablesManagerProps> = ({ onVariablesLoaded }) => {
-  useEffect(() => {
-    const fetchPriceVariables = async () => {
-      console.log('Fetching price variables in PriceVariablesManager');
-      const docRef = doc(db, 'settings', 'priceVariables');
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        console.log('Fetched data:', data);
-        onVariablesLoaded({
-          baseDeliveryFee: data.baseDeliveryFee || 100,
-          deliveryFeePerMile: data.deliveryFeePerMile || 2,
-          installFeePerRampSection: data.installFeePerRampSection || 50,
-          installFeePerLanding: data.installFeePerLanding || 100,
-          monthlyRatePerFoot: data.monthlyRatePerFoot || 10,
-          warehouseAddress: data.warehouseAddress || '',
-        });
-      }
+  static async getVariables(): Promise<PriceVariablesType> {
+    const variables = await this.crudService.getAll();
+    return variables[0] || {
+      id: '',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      baseDeliveryFee: 0,
+      deliveryFeePerMile: 0,
+      installFeePerRampSection: 0,
+      installFeePerLanding: 0,
+      monthlyRatePerFoot: 0,
+      warehouseAddress: '',
     };
-    fetchPriceVariables();
-  }, [onVariablesLoaded]);
+  }
 
-  return null;
-};
+  static async saveVariables(variables: Omit<PriceVariablesType, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> {
+    const existingVariables = await this.crudService.getAll();
+    if (existingVariables.length > 0) {
+      await this.crudService.update(existingVariables[0].id, variables as PriceVariablesType & BaseEntity);
+    } else {
+      await this.crudService.create(variables as PriceVariablesType & BaseEntity);
+    }
+  }
+}
 
 export default PriceVariablesManager;
